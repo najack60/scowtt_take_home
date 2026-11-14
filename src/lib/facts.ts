@@ -16,6 +16,6 @@ export async function generateAndSaveFact(userId: string, movie: string) {
 
   return prisma.fact.create({
     data: { userId, movie, content },
-    select: { content: true },
+    select: { movie: true, content: true, createdAt: true },
   });
 }

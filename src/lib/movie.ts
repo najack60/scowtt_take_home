@@ -1,4 +1,4 @@
-export function validateMovie(value: FormDataEntryValue | null) {
+export function validateMovie(value: FormDataEntryValue | null): { movie: string } | { error: string; value: string } {
   if (typeof value !== "string") {
     return { error: "Please enter your favorite movie.", value: "" };
   }

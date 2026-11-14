@@ -21,7 +21,7 @@ describe("POST /api/facts", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     mocks.getCurrentUser.mockResolvedValue({ id: "user-1", favoriteMovie: "Alien" });
-    mocks.generateAndSaveFact.mockResolvedValue({ content: "A fact." });
+    mocks.generateAndSaveFact.mockResolvedValue({ content: "A fact.", movie: "Alien", createdAt: new Date("2026-01-01") });
   });
 
   it("rejects cross-origin and unauthenticated requests", async () => {
@@ -37,11 +37,20 @@ describe("POST /api/facts", () => {
     expect(mocks.generateAndSaveFact).not.toHaveBeenCalled();
   });
 
+  it("does not generate for a session that changed in another tab", async () => {
+    const stale = new Request("http://localhost:3000/api/facts", {
+      method: "POST",
+      headers: { origin: "http://localhost:3000", host: "localhost:3000", "x-expected-user-id": "old-user" },
+    });
+    expect((await POST(stale)).status).toBe(409);
+    expect(mocks.generateAndSaveFact).not.toHaveBeenCalled();
+  });
+
   it("generates for the authenticated user's movie and prevents caching", async () => {
     const response = await POST(request());
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(await response.json()).toEqual({ content: "A fact." });
+    expect(await response.json()).toEqual({ fact: { content: "A fact.", movie: "Alien", createdAt: "2026-01-01T00:00:00.000Z" } });
     expect(mocks.generateAndSaveFact).toHaveBeenCalledWith("user-1", "Alien");
   });
 

@@ -19,11 +19,12 @@ describe("generateAndSaveFact", () => {
 
   it("persists a non-empty generated fact with its owner and movie", async () => {
     mocks.createResponse.mockResolvedValue({ output_text: "  Some trivia.  " });
-    mocks.createFact.mockResolvedValue({ content: "Some trivia." });
-    await expect(generateAndSaveFact("user-1", "Alien")).resolves.toEqual({ content: "Some trivia." });
+    const fact = { content: "Some trivia.", movie: "Alien", createdAt: new Date("2026-01-01") };
+    mocks.createFact.mockResolvedValue(fact);
+    await expect(generateAndSaveFact("user-1", "Alien")).resolves.toEqual(fact);
     expect(mocks.createFact).toHaveBeenCalledWith({
       data: { userId: "user-1", movie: "Alien", content: "Some trivia." },
-      select: { content: true },
+      select: { content: true, movie: true, createdAt: true },
     });
   });
 
